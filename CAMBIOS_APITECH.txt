@@ -1,0 +1,70 @@
+ApiTech MK5 - cambios incluidos
+
+1. Aislamiento por empresa en colmenas, sensores, asociaciones y produccion.
+   Los usuarios cliente no pueden operar con IDs de otra empresa.
+2. La pantalla de colmenas muestra numeracion local (#1, #2...) para cada empresa.
+   El id_colmena de MySQL se conserva como PK tecnica global porque es AUTO_INCREMENT
+   y las tablas sensor_colmena, produccion_miel, alertas y otras lo referencian.
+3. Al asociar un sensor simulado a una colmena estable y con sensor activo,
+   el programador genera una medicion cada 30 segundos y activa el monitoreo.
+4. Temperatura y humedad fluctuan; peso aumenta progresivamente.
+5. Cada medicion simulada se compara contra el umbral de la empresa y luego
+   contra el umbral global. Si no existe ninguno, se usa un rango seguro de
+   demostracion para mantener funcionando el flujo de alertas.
+6. Al salir del rango se crea una alerta ACTIVA y una notificacion para los
+   usuarios de la empresa. No se crean alertas duplicadas mientras exista una
+   alerta activa del mismo tipo para la misma colmena.
+7. Produccion ahora se puede registrar desde /app/produccion y se muestra en
+   la tabla y estadisticas del modulo. La empresa se deriva de la colmena.
+8. Los reportes siguen usando las mediciones guardadas, por lo que las lecturas
+   simuladas quedan disponibles para filtros por asociacion, tipo y fecha/hora.
+   Se agrego validacion para impedir reportes de otra empresa.
+9. Configuracion > Editar perfil permite cambiar nombre, apellido, correo y,
+   opcionalmente, contraseña. La contraseña se guarda con BCrypt. Si cambia
+   el correo, se actualiza la autenticacion de la sesion para no cerrarla.
+
+Arranque:
+  1) Tener MySQL activo y la base apitech creada con database/schema.sql.
+  2) Configurar las credenciales de la aplicacion en application.properties.
+  3) En PowerShell, desde la carpeta del proyecto:
+       .\mvnw.cmd spring-boot:run
+
+Nota: no se modifico database/schema.sql en este paquete. El AUTO_INCREMENT de
+id_colmena sigue siendo una clave tecnica global; la numeracion que ve el
+usuario en la pantalla es independiente por empresa. Convertir id_colmena en
+una clave realmente reiniciable por empresa requeriria cambiar el esquema y
+las claves foraneas, no solo src.
+
+
+10. Flujo final de suscripción:
+   - El registro público incluye una tarjeta de débito FALSA para la simulación.
+   - No se almacena el número completo; solo los últimos 4 dígitos.
+   - ApiTech comercializa únicamente Plan Básico y Plan Profesional.
+
+11. Administración ApiTech:
+   - Gestionar empresas lista todas las empresas, permite buscar por nombre y activar/desactivar.
+   - Gestión de pagos muestra suscripciones con ID, empresa, plan, inicio, fin y estado.
+   - Los indicadores muestran pagos pendientes y total recibido (solo pagos verificados).
+   - Usuarios ApiTech tiene una vista para crear y activar/desactivar empleados internos.
+   - Se eliminó el acceso visual "Vista cliente" del panel interno.
+   - El menú lateral interno ahora muestra Dashboard, Solicitudes, Empresas, Pagos y Usuarios.
+
+12. Límites por plan:
+   - Plan Básico: máximo 20 colmenas y 20 sensores.
+   - Plan Profesional: máximo 60 colmenas y 60 sensores.
+   - Los límites se validan en servicios, por lo que no pueden saltarse mediante la API.
+
+13. Empresas pausadas:
+   - Una empresa bloqueada por ApiTech puede iniciar sesión, pero queda en modo pausado.
+   - Se bloquean las operaciones de escritura y la generación de mediciones simuladas.
+   - Al reactivar la empresa, las operaciones y simulación vuelven a funcionar.
+
+14. Cliente:
+   - Pagos es solo informativo: muestra plan, beneficios, fecha de inicio y fecha de fin.
+   - No permite cambiar de plan ni registrar tarjetas/pagos desde el panel.
+   - Alertas incluyen "Marcar completado"; al completar pasan a RESUELTA y desaparecen de alertas activas y de la campana.
+   - Se añadieron botones de regreso en las vistas principales.
+
+15. Base de datos:
+   - database/schema.sql incluye solicitudes_suscripcion y los dos planes oficiales.
+   - database/migration_final.sql permite actualizar una instalación existente sin recrear la base.

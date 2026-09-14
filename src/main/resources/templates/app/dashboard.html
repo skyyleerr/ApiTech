@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/base :: head('Dashboard')}"></head>
+<body>
+<div th:replace="~{layout/base :: splash}"></div>
+<div th:replace="~{layout/base :: sidebar}"></div>
+<div class="main">
+  <div th:replace="~{layout/base :: topbar}"></div>
+  <div class="header">
+    <h1>📊 Monitoreo del Apiario</h1>
+    <a th:href="@{/app/colmenas/nueva}"><button class="btn"><i class="fa-solid fa-plus"></i> Nueva Colmena</button></a>
+  </div>
+  <div class="dashboard">
+    <div class="cards" id="cards-container">
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-box"></i></div><div class="card-title">Colmenas activas</div><div class="card-value" id="colmenas-activas" th:text="${totalColmenas}">0</div></div>
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-jar"></i></div><div class="card-title">Producción total</div><div class="card-value" id="produccion-total"><span class="card-empty">Sin datos</span></div></div>
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-temperature-half"></i></div><div class="card-title">Temperatura promedio</div><div class="card-value" id="temperatura-promedio"><span class="card-empty">Sin datos</span></div></div>
+      <div class="card"><div class="card-icon"><i class="fa-solid fa-triangle-exclamation"></i></div><div class="card-title">Alertas activas</div><div class="card-value" id="alertas-activas"><span class="card-empty" th:text="${alertasActivas}">0</span></div></div>
+    </div>
+    <div class="table-container">
+      <h3 style="margin-bottom: 20px; font-size: 18px; font-weight: 700;">Colmenas Registradas</h3>
+      <table id="tabla-colmenas">
+        <thead><tr><th>ID</th><th>Nombre</th><th>Ubicación</th><th>Temperatura</th><th>Producción</th><th>Estado</th><th>Fecha</th></tr></thead>
+        <tbody id="tbody-colmenas">
+          <tr th:each="c : ${colmenas}" th:attr="data-id=${c.idColmena}">
+            <td th:text="|#${c.idColmena}|">#1</td><td><strong th:text="${c.nombre}">Colmena</strong></td><td th:text="${c.ubicacion}">Ubicación</td>
+            <td><strong class="temp-cell">0°C</strong></td><td class="prod-cell">0 kg</td><td class="estado-cell"><span class="ok">Cargando...</span></td>
+            <td th:text="${#temporals.format(c.fechaCreacion, 'dd/MM/yyyy')}">09/09/2026</td>
+          </tr>
+          <tr th:if="${#lists.isEmpty(colmenas)}"><td colspan="7" style="text-align: center; padding: 40px; color: #999;"><i class="fa-solid fa-inbox" style="font-size: 32px; margin-bottom: 10px; display: block; opacity: 0.5;"></i>No hay colmenas registradas</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="graficas-container" th:if="${!#lists.isEmpty(colmenas)}">
+      <div class="grafica"><h3 style="padding: 16px; margin: 0; border-bottom: 1px solid #f0f0f0;">📈 Temperatura en los últimos 7 días</h3><canvas id="graficaTemp"></canvas></div>
+      <div class="grafica"><h3 style="padding: 16px; margin: 0; border-bottom: 1px solid #f0f0f0;">📊 Producción por Colmena</h3><canvas id="graficaProduccion"></canvas></div>
+    </div>
+    <div class="graficas-container" th:if="${#lists.isEmpty(colmenas)}">
+      <div class="grafica grafica-empty"><i class="fa-solid fa-chart-line"></i><p>Las gráficas aparecerán cuando registres colmenas</p></div>
+      <div class="grafica grafica-empty"><i class="fa-solid fa-chart-bar"></i><p>Monitorea la producción en tiempo real</p></div>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script th:src="@{/js/dashboard.js}"></script>
+<script>
+let chartTemp=null, chartProduccion=null;
+const datosTemperatura=[33,34,35,36,35,34,33];
+function iniciarGraficas(){
+ const t=document.getElementById('graficaTemp'), p=document.getElementById('graficaProduccion');
+ if(t && window.Chart) chartTemp=new Chart(t,{type:'line',data:{labels:['6 días','5 días','4 días','3 días','2 días','Ayer','Hoy'],datasets:[{label:'Temperatura °C',data:datosTemperatura,borderColor:'#FFC72C',backgroundColor:'rgba(255,199,44,.15)',fill:true,tension:.4}]},options:{responsive:true,maintainAspectRatio:false}});
+ if(p && window.Chart) chartProduccion=new Chart(p,{type:'bar',data:{labels:[],datasets:[{label:'Producción kg',data:[],backgroundColor:'#FFC72C'}]},options:{responsive:true,maintainAspectRatio:false}});
+}
+window.addEventListener('load',iniciarGraficas);
+</script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html><html lang="es" xmlns:th="http://www.thymeleaf.org"><head th:replace="~{layout/base :: head('Dashboard Admin ApiTech')}"></head>
+<body><div th:replace="~{layout/base :: sidebar}"></div><main class="main"><div th:replace="~{layout/base :: topbar}"></div><div class="header"><div>
+    <h1>🛡️ Centro de Control ApiTech</h1><p style="color:#666">Panel global del administrador de la plataforma</p>
+</div><span style="padding:10px 15px;border-radius:8px;background:#dcfce7;color:#166534;font-weight:700"><i class="fa-solid fa-key">
+
+</i> Acceso total</span></div><style>.role-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.role-card,.role-panel
+{background:#fff;border-radius:14px;padding:22px;box-shadow:0 4px 12px rgba(0,0,0,.08);border-top:3px solid #7c3aed}.role-card i
+{font-size:28px;color:#7c3aed}.role-value{font-size:29px;font-weight:800;margin-top:9px}.role-panel{margin-top:20px}.quick{display:flex;flex-wrap:wrap;gap:10px}.quick a
+{padding:11px 15px;border-radius:8px;background:#ede9fe;color:#5b21b6;text-decoration:none;font-weight:700}.notice
+{background:#f5f3ff;color:#5b21b6;padding:14px;border-radius:8px;margin-top:16px}@media(max-width:800px){.role-grid{grid-template-columns:1fr 1fr}}@media
+(max-width:550px){.role-grid{grid-template-columns:1fr}}</style><section class="dashboard"><div class="role-grid"><div class="role-card"><i class="fa-solid fa-building">
+
+</i><div>Empresas registradas</div><div class="role-value" th:text="${totalEmpresas}">0</div></div><div class="role-card"><i class="fa-solid fa-circle-check"></i>
+    <div>Empresas activas</div><div class="role-value" th:text="${empresasActivas}">0</div></div><div class="role-card"><i class="fa-solid fa-credit-card"></i>
+        <div>Pagos</div><div class="role-value" style="font-size:18px">Gestión total</div></div><div class="role-card"><i class="fa-solid fa-users-gear"></i>
+            <div>Usuarios</div><div class="role-value" style="font-size:18px">RBAC activo</div></div></div><div class="role-panel"><h2>Administración global</h2>
+                <div class="quick"><a th:href="@{/admin/solicitudes}"><i class="fa-solid fa-file-signature"></i> Solicitudes de suscripción</a>
+                    <a th:href="@{/admin/empresas}"><i class="fa-solid fa-building"></i> Gestionar empresas</a><a th:href="@{/admin/pagos}">
+                        <i class="fa-solid fa-money-check-dollar"></i> Verificar pagos</a><a th:href="@{/admin/usuarios}"><i class="fa-solid fa-users">
+
+                        </i> Usuarios</a><a th:href="@{/admin/configuracion}"><i class="fa-solid fa-gear"></i> Configuración</a></div><div class="notice">
+                            <i class="fa-solid fa-shield-halved"></i> Puedes supervisar solicitudes, empresas, pagos y usuarios de la plataforma.</div>
+                        </div></section></main></body></html>

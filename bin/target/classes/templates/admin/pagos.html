@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/base :: head('Gestión de pagos')}"></head>
+<body><div th:replace="~{layout/base :: sidebar}"></div><main class="main"><div th:replace="~{layout/base :: topbar}"></div>
+<div class="header"><div><h1>Gestión de pagos</h1><p style="color:#666">Resumen de pagos y vigencia de las suscripciones.</p></div><a class="btn-secondary" th:href="@{/admin/dashboard}">← Regresar</a></div>
+<section class="dashboard">
+<div class="cards"><div class="card"><div class="card-icon"><i class="fa-solid fa-hourglass-half"></i></div><div class="card-title">Pagos pendientes</div><div class="card-value" th:text="${pagosPendientes}">0</div></div>
+<div class="card"><div class="card-icon"><i class="fa-solid fa-circle-dollar-to-slot"></i></div><div class="card-title">Total recibido</div><div class="card-value" th:text="${'$ ' + totalRecibido}">$0</div></div></div>
+<div class="table-container"><h3>Suscripciones registradas</h3><table><thead><tr><th>ID</th><th>Empresa</th><th>Plan</th><th>Fecha inicio</th><th>Fecha fin</th><th>Estado</th></tr></thead><tbody>
+<tr th:each="s:${suscripciones}"><td th:text="${s.idSuscripcion}">1</td><td th:text="${s.empresa.nombreEmpresa}">Empresa</td><td th:text="${s.plan.nombrePlan}">Plan</td><td th:text="${s.fechaInicio ?: '—'}">—</td><td th:text="${s.fechaVencimiento ?: '—'}">—</td><td><span class="status" th:classappend="${s.estado.name() != 'ACTIVA'} ? ' off' : ''" th:text="${s.estado}">ACTIVA</span></td></tr>
+<tr th:if="${#lists.isEmpty(suscripciones)}"><td colspan="6" style="text-align:center;padding:35px;color:#999">No hay suscripciones.</td></tr></tbody></table></div>
+</section></main></body></html>

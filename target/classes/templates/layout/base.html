@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head(title)">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title th:text="${title} + ' - ApiTech'">ApiTech</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" th:href="@{/css/dashboard.css}">
+<style>
+.splash{animation:fadeOut .8s ease-out 1.2s forwards}.splash-logo{animation:bounce 2s infinite}@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+.cards{animation:slideUp .6s ease .1s both}.card{transition:all .4s cubic-bezier(.34,1.56,.64,1);animation:slideUp .6s ease;position:relative;border-top:3px solid #FFC72C}.card:hover{transform:translateY(-8px);box-shadow:0 15px 40px rgba(255,199,44,.2);border-top:4px solid #FFC72C}.card-empty{color:#999;font-size:18px;font-weight:500}.table-container,.graficas-container{animation:slideUp .6s ease .3s both}
+#modal-alertas{position:fixed;top:60px;right:20px;width:350px;max-height:500px;background:#fff;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.15);z-index:1000;display:none;flex-direction:column;overflow:hidden}#modal-alertas.active{display:flex}#modal-alertas .modal-title{padding:16px;border-bottom:2px solid #f0f0f0;background:linear-gradient(135deg,#f9f9f9,#f5f5f5)}#alertas-lista{flex:1;overflow-y:auto;padding:12px}.alerta-item{padding:12px;border-left:4px solid #f59e0b;background:#fff8e7;margin-bottom:8px;border-radius:6px}.alerta-item.error{border-left-color:#ef4444;background:#fff1f2}.alerta-item strong{display:block;font-size:13px;margin-bottom:4px}.alerta-item p{margin:0;font-size:12px;color:#666}.alerta-item span{font-size:11px;color:#999}
+#badge-alertas{position:absolute;top:-8px;right:-8px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border-radius:50%;width:24px;height:24px;align-items:center;justify-content:center;font-size:12px;font-weight:800;box-shadow:0 4px 12px rgba(239,68,68,.4);animation:pulse 2s infinite}#badge-alertas:not(.hide){display:flex!important}#badge-alertas.hide{display:none!important}@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.user-menu{position:relative}.user-menu>summary{list-style:none}.user-menu>summary::-webkit-details-marker{display:none}.user-menu:not([open]) .modal-usuario{display:none!important}.user-menu[open] .modal-usuario{display:block!important}.user-menu[open] .user-icon{box-shadow:0 0 0 3px rgba(255,199,44,.22)}.user-icon{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#FFC72C,#ffb700);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:#1a1a1a;font-weight:700;box-shadow:0 4px 12px rgba(255,199,44,.3)}#btn-alertas{color:#666;font-size:20px;cursor:pointer}.modal-usuario.active{display:block}.modal-usuario{display:none;position:fixed;right:24px;top:68px;width:280px;background:#fff;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.18);z-index:1100;overflow:hidden}.modal-usuario-header{padding:18px;text-align:center;background:linear-gradient(135deg,#fff9e6,#fff);border-bottom:1px solid #eee}.modal-usuario-header .avatar{margin:0 auto 8px;width:44px;height:44px;border-radius:50%;background:#FFC72C;display:flex;align-items:center;justify-content:center;font-weight:800}.modal-usuario-header h3{margin:0;font-size:15px}.modal-usuario-body{padding:8px 0}.modal-usuario-item{display:flex;gap:12px;align-items:center;padding:12px 18px;color:#333;text-decoration:none}.modal-usuario-item:hover{background:#fff8df}.modal-usuario-footer{padding:12px;border-top:1px solid #eee}.btn-logout{display:flex;width:100%;align-items:center;justify-content:center;gap:8px;padding:10px;border:0;border-radius:8px;background:#fee2e2;color:#b91c1c;text-decoration:none;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="splash" th:fragment="splash"><img th:src="@{/img/apitech.png}" class="splash-logo" alt="ApiTech"><h1>ApiTech</h1></div>
+<div class="sidebar" th:fragment="sidebar"><div class="logo-container"><img th:src="@{/img/apitech_logo.png}" class="logo-img" alt="ApiTech"><div class="logo-text">ApiTech</div></div><ul class="menu">
+<li sec:authorize="hasAnyRole('Admin_Cliente','Empleado_Cliente')"><a th:href="@{/app/dashboard}"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li><li sec:authorize="hasAnyRole('Admin_Cliente','Empleado_Cliente')"><a th:href="@{/app/colmenas}"><i class="fa-solid fa-box"></i> Colmenas</a></li><li sec:authorize="hasAnyRole('Admin_Cliente','Empleado_Cliente')"><a th:href="@{/app/sensores}"><i class="fa-solid fa-microchip"></i> Sensores</a></li><li sec:authorize="hasAnyRole('Admin_Cliente','Empleado_Cliente')"><a th:href="@{/app/produccion}"><i class="fa-solid fa-jar"></i> Producción</a></li><li sec:authorize="hasAnyRole('Admin_Cliente','Empleado_Cliente')"><a th:href="@{/app/alertas}"><i class="fa-solid fa-triangle-exclamation"></i> Alertas</a></li><li sec:authorize="hasAnyRole('Admin_Cliente','Empleado_Cliente')"><a th:href="@{/app/reportes}"><i class="fa-solid fa-file"></i> Reportes</a></li><li sec:authorize="hasRole('Admin_Cliente')"><a th:href="@{/app/usuarios}"><i class="fa-solid fa-users"></i> Usuarios</a></li><li sec:authorize="hasAnyRole('Admin_Cliente','Empleado_Cliente')"><a th:href="@{/app/pagos}"><i class="fa-solid fa-credit-card"></i> Pagos</a></li><li sec:authorize="hasAnyRole('Admin_Cliente','Empleado_Cliente')"><a th:href="@{/app/importar}"><i class="fa-solid fa-upload"></i> Importar Datos</a></li><li sec:authorize="hasAnyRole('Admin_Cliente','Empleado_Cliente')"><a th:href="@{/app/configuracion}"><i class="fa-solid fa-gear"></i> Configuración</a></li>
+<li sec:authorize="hasAnyRole('Admin_ApiTech','Empleado_ApiTech')"><a th:href="@{/admin/dashboard}"><i class="fa-solid fa-chart-line"></i> Dashboard ApiTech</a></li>
+<li sec:authorize="hasAnyRole('Admin_ApiTech','Empleado_ApiTech')"><a th:href="@{/admin/solicitudes}"><i class="fa-solid fa-file-signature"></i> Solicitudes</a></li>
+<li sec:authorize="hasAnyRole('Admin_ApiTech','Empleado_ApiTech')"><a th:href="@{/admin/empresas}"><i class="fa-solid fa-building"></i> Gestionar empresas</a></li>
+<li sec:authorize="hasAnyRole('Admin_ApiTech','Empleado_ApiTech')"><a th:href="@{/admin/pagos}"><i class="fa-solid fa-money-check-dollar"></i> Gestión de pagos</a></li>
+<li sec:authorize="hasAnyRole('Admin_ApiTech','Empleado_ApiTech')"><a th:href="@{/admin/usuarios}"><i class="fa-solid fa-users"></i> Usuarios ApiTech</a></li>
+<li sec:authorize="hasAnyRole('Admin_ApiTech','Empleado_ApiTech')"><a th:href="@{/admin/configuracion}"><i class="fa-solid fa-gear"></i> Configuración</a></li>
+</ul></div>
+<div th:fragment="topbar"><div class="topbar"><input class="search" placeholder="Buscar colmena..." id="search"><div style="display:flex;gap:20px;align-items:center"><div style="position:relative"><i class="fa-solid fa-bell" id="btn-alertas" title="Notificaciones"></i><span id="badge-alertas" class="hide">0</span></div><details class="user-menu"><summary class="user-icon" id="btn-usuario" th:text="${#strings.substring(#authentication.name,0,1).toUpperCase()}" aria-label="Abrir menú de usuario">U</summary><div class="modal-usuario" style="display:block;position:absolute;right:0;top:50px;width:250px"><div class="modal-usuario-header"><div class="avatar" th:text="${#strings.substring(#authentication.name,0,1).toUpperCase()}">U</div><h3 sec:authentication="name">Usuario</h3></div><div class="modal-usuario-footer" style="border-top:0"><a th:href="@{/logout}" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión</a></div></div></details></div></div>
+<div id="modal-alertas"><div class="modal-title"><h3 style="margin:0;font-size:16px;color:#2c3e50"><i class="fa-solid fa-exclamation-triangle" style="color:#FFC72C;margin-right:8px"></i>Alertas del Sistema</h3></div><div id="alertas-lista"><div style="text-align:center;color:#999;padding:30px 20px"><i class="fa-solid fa-check-circle" style="font-size:40px;opacity:.5;display:block;margin-bottom:10px"></i><p>No hay alertas activas</p></div></div></div>
+<script>
+(function(){
+  function initTopbar(){
+    const bell=document.getElementById('btn-alertas');
+    const modal=document.getElementById('modal-alertas');
+    const badge=document.getElementById('badge-alertas');
+    if(!bell || !modal) return;
+    function render(list){
+      const box=document.getElementById('alertas-lista');
+      if(!box) return;
+      if(!list.length){box.innerHTML='<div style="text-align:center;color:#999;padding:30px 20px"><i class="fa-solid fa-check-circle" style="font-size:40px;opacity:.5;display:block;margin-bottom:10px"></i><p>No hay alertas activas</p></div>'; if(badge) badge.classList.add('hide'); return;}
+      if(badge){badge.textContent=list.length;badge.classList.remove('hide');}
+      box.innerHTML=list.map(a=>'<div class="alerta-item '+((a.severidad==='alta'||a.severidad==='critica')?'error':'')+'"><strong>'+((a.tipo)||'Alerta')+'</strong><p>'+((a.descripcion)||'Revisa el estado de tu apiario')+'</p><span>'+((a.estado)||'ACTIVA')+'</span></div>').join('');
+    }
+    function load(){fetch('/api/alertas/activas').then(r=>r.ok?r.json():{content:[]}).then(data=>render(data.content||data||[])).catch(()=>render([]));}
+    bell.onclick=function(e){e.preventDefault();e.stopPropagation();modal.classList.toggle('active');load();};
+    document.addEventListener('click',function(e){
+      if(!modal.contains(e.target) && e.target!==bell) modal.classList.remove('active');
+    });
+    load();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initTopbar); else initTopbar();
+})();
+</script></div>
+</body></html>
