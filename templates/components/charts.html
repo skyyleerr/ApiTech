@@ -1,0 +1,15 @@
+<section class="role-panel">
+    <h2>Historial de sensores</h2>
+    <p class="muted">Mediciones almacenadas, separadas por sensor. El peso corresponde a 
+        la colmena; la cosecha se registra en Producción.
+    </p><div class="charts-grid" data-chart-url="{{ chart_url }}">
+    <div class="chart-box"><h3>Temperatura · °C</h3>
+    <canvas data-tipo="TEMPERATURA" aria-label="Historial de temperatura">
+
+    </canvas></div><div class="chart-box"><h3>Humedad · %</h3>
+    <canvas data-tipo="HUMEDAD" aria-label="Historial de humedad">
+    
+    </canvas></div><div class="chart-box"><h3>Peso · kg</h3>
+    <canvas data-tipo="PESO" aria-label="Historial de peso">
+    
+    </canvas></div><p class="chart-status muted" aria-live="polite"></p></div></section>
