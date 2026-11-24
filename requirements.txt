@@ -1,0 +1,6 @@
+Django==5.2.19
+bcrypt==4.2.1
+python-dotenv==1.0.1
+requests==2.32.5
+openpyxl==3.1.5
+reportlab==4.4.5
