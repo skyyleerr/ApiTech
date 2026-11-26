@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/base :: head('Configuración')}"></head>
+<body>
+<div th:replace="~{layout/base :: sidebar}"></div>
+<main class="main">
+  <div th:replace="~{layout/base :: topbar}"></div>
+  <style>
+    .cfg-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:22px}
+    .cfg-header h1{margin:0;font-size:26px}
+    .cfg-header p{color:#666;margin:6px 0 0}
+    .btn-secondary{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:9px;background:#f1f1f1;color:#333;font-weight:700;text-decoration:none}
+    .btn-secondary:hover{background:#e6e6e6}
+    .cfg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:22px}
+    .cfg-card{background:#fff;border-radius:16px;padding:22px;box-shadow:0 6px 18px rgba(0,0,0,.07);border-top:4px solid #FFC72C;display:flex;flex-direction:column;gap:8px}
+    .cfg-card .cfg-icon{width:46px;height:46px;border-radius:12px;background:#fff6d9;color:#b8860b;display:flex;align-items:center;justify-content:center;font-size:20px}
+    .cfg-card h3{margin:4px 0 0;font-size:15px;color:#333}
+    .cfg-card p{margin:0;font-weight:700;font-size:16px;color:#111;word-break:break-word}
+    .cfg-card small{color:#888}
+    .cfg-badge{display:inline-block;width:fit-content;padding:5px 11px;border-radius:999px;background:#dcfce7;color:#166534;font-weight:700;font-size:12px}
+    .cfg-panel{background:#fff;border-radius:16px;box-shadow:0 6px 18px rgba(0,0,0,.07);padding:26px;max-width:640px}
+    .cfg-panel h2{margin:0 0 6px;font-size:19px}
+    .cfg-panel > p{color:#666;margin:0 0 20px}
+    .cfg-alert{padding:13px 16px;border-radius:10px;margin-bottom:18px;font-weight:600;display:flex;gap:10px;align-items:center}
+    .cfg-alert.ok{background:#ecfdf5;color:#166534}
+    .cfg-alert.error{background:#fee2e2;color:#b91c1c}
+    .cfg-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .cfg-field{display:flex;flex-direction:column;gap:7px;grid-column:span 1}
+    .cfg-field.full{grid-column:span 2}
+    .cfg-field label{font-weight:700;font-size:13px;color:#333}
+    .cfg-field small{color:#888;font-weight:400}
+    .cfg-field input{padding:12px;border:1px solid #d8d8d8;border-radius:9px;background:#fafafa;font-size:14px}
+    .cfg-field input:focus{outline:2px solid #FFC72C;background:#fff}
+    .cfg-submit{margin-top:22px;display:inline-flex;align-items:center;gap:9px;padding:12px 22px;border:0;border-radius:9px;background:#FFC72C;color:#1a1a1a;font-weight:800;cursor:pointer;font-size:14px}
+    .cfg-submit:hover{background:#f0b900}
+    @media(max-width:850px){.cfg-grid{grid-template-columns:1fr}.cfg-form-grid{grid-template-columns:1fr}.cfg-field.full{grid-column:span 1}}
+  </style>
+
+  <div class="cfg-header">
+    <div>
+      <h1><i class="fa-solid fa-gear"></i> Configuración</h1>
+      <p>Administra tus datos personales y la contraseña de tu cuenta ApiTech.</p>
+    </div>
+    <a class="btn-secondary" th:href="@{/admin/dashboard}"><i class="fa-solid fa-arrow-left"></i> Regresar</a>
+  </div>
+
+  <section class="dashboard">
+    <div class="cfg-grid">
+      <div class="cfg-card">
+        <div class="cfg-icon"><i class="fa-solid fa-user"></i></div>
+        <h3>Mi cuenta</h3>
+        <p th:text="${usuarioActual.nombre + ' ' + (usuarioActual.apellido ?: '')}">Usuario ApiTech</p>
+        <span class="cfg-badge" th:text="${usuarioActual.rol.nombreRol}">Admin_ApiTech</span>
+      </div>
+      <div class="cfg-card">
+        <div class="cfg-icon"><i class="fa-solid fa-envelope"></i></div>
+        <h3>Correo de acceso</h3>
+        <p th:text="${usuarioActual.correo}">correo@apitech.com</p>
+        <small>Se utiliza para iniciar sesión.</small>
+      </div>
+      <div class="cfg-card">
+        <div class="cfg-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <h3>Seguridad</h3>
+        <p>Contraseña cifrada</p>
+        <small>Puedes cambiarla en el formulario de abajo.</small>
+      </div>
+    </div>
+
+    <div class="cfg-panel">
+      <div th:if="${mensaje}" class="cfg-alert ok">
+        <i class="fa-solid fa-circle-check"></i>
+        <span th:text="${mensaje}">Perfil actualizado correctamente.</span>
+      </div>
+      <div th:if="${errorPerfil}" class="cfg-alert error">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span th:text="${errorPerfil}">No fue posible actualizar los datos.</span>
+      </div>
+
+      <h2><i class="fa-solid fa-user-pen"></i> Editar mis datos</h2>
+      <p>Cambia únicamente la información de tu propia cuenta. Los cambios se aplican de inmediato.</p>
+      <form method="post" th:action="@{/admin/configuracion/perfil}" th:object="${perfil}">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <div class="cfg-form-grid">
+          <div class="cfg-field">
+            <label>Nombre *</label>
+            <input name="nombre" th:value="${perfil.nombre}" required maxlength="100">
+          </div>
+          <div class="cfg-field">
+            <label>Apellido</label>
+            <input name="apellido" th:value="${perfil.apellido}" maxlength="100">
+          </div>
+          <div class="cfg-field full">
+            <label>Correo electrónico *</label>
+            <input name="correo" th:value="${perfil.correo}" type="email" required maxlength="150">
+          </div>
+          <div class="cfg-field full">
+            <label>Nueva contraseña <small>(opcional, déjala vacía para conservar la actual)</small></label>
+            <input name="passwordNuevo" type="password" minlength="8" maxlength="100" placeholder="••••••••">
+          </div>
+        </div>
+        <button class="cfg-submit" type="submit">
+          <i class="fa-solid fa-floppy-disk"></i> Guardar cambios
+        </button>
+      </form>
+    </div>
+  </section>
+</main>
+</body>
+</html>

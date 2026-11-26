@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/base :: head('Gestionar empresas')}"></head>
+<body>
+<div th:replace="~{layout/base :: sidebar}"></div>
+<main class="main"><div th:replace="~{layout/base :: topbar}"></div>
+<div class="header"><div><h1>Gestionar empresas</h1><p style="color:#666">Consulta y controla el estado de las empresas registradas.</p></div><a class="btn-secondary" th:href="@{/admin/dashboard}">← Regresar</a></div>
+<section class="dashboard">
+<div class="table-container">
+<form method="get" th:action="@{/admin/empresas}" style="display:flex;gap:10px;margin-bottom:20px">
+<input name="q" th:value="${busqueda}" placeholder="Buscar por nombre de empresa..." style="flex:1;padding:12px;border:1px solid #ddd;border-radius:8px">
+<button class="btn" type="submit"><i class="fa-solid fa-search"></i> Buscar</button>
+<a class="btn-secondary" th:href="@{/admin/empresas}">Limpiar</a>
+</form>
+<table><thead><tr><th>ID</th><th>Empresa</th><th>NIT</th><th>Correo</th><th>Estado</th><th>Acción</th></tr></thead>
+<tbody><tr th:each="e:${empresas}">
+<td th:text="${e.idEmpresa}">1</td><td th:text="${e.nombreEmpresa}">Empresa</td><td th:text="${e.nit}">NIT</td><td th:text="${e.correo}">correo</td>
+<td><span class="status" th:classappend="${e.estado != 'activa'} ? ' off' : ''" th:text="${e.estado}">activa</span></td>
+<td sec:authorize="hasRole('Admin_ApiTech')"><form method="post" th:action="@{/admin/empresas/estado/{id}(id=${e.idEmpresa})}">
+<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+<input type="hidden" name="nuevoEstado" th:value="${e.estado == 'activa' ? 'bloqueada' : 'activa'}">
+<button class="btn" type="submit" th:text="${e.estado == 'activa' ? 'Desactivar' : 'Activar'}">Cambiar</button></form></td>
+</tr><tr th:if="${#lists.isEmpty(empresas)}"><td colspan="6" style="text-align:center;padding:35px;color:#999">No hay empresas.</td></tr></tbody></table>
+</div></section></main></body></html>

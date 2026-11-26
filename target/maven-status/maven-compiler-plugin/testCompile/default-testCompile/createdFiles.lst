@@ -1,0 +1,4 @@
+com\apitech\mk5\Mk5ApplicationTests.class
+com\apitech\mk5\service\MedicionServiceTest.class
+com\apitech\mk5\controller\ColmenaControllerTest.class
+com\apitech\mk5\service\UsuarioServiceTest.class

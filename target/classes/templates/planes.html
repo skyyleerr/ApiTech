@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Planes ApiTech</title>
+<link rel="stylesheet" th:href="@{/css/estilos.css}"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+.pricing{max-width:1200px;margin:0 auto;padding:30px 20px 55px}.pricing-header{text-align:center;margin-bottom:38px}.pricing-header h1{font-size:42px;margin-bottom:12px}.pricing-header p{color:#666}.plans{display:grid;grid-template-columns:repeat(2,minmax(280px,1fr));gap:28px;max-width:900px;margin:auto}.plan{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:30px;box-shadow:0 8px 24px rgba(0,0,0,.08);position:relative}.plan.featured{border:3px solid var(--primary);transform:translateY(-8px)}.plan-badge{position:absolute;right:18px;top:18px;background:var(--primary);padding:6px 11px;border-radius:999px;font-size:11px;font-weight:800}.plan h2{margin:0 0 10px}.plan-description{min-height:48px;color:#666;line-height:1.5}.price{font-size:36px;font-weight:800;margin:18px 0 4px}.price small{font-size:13px;color:#777;font-weight:500}.limit{display:inline-block;margin:8px 0 15px;padding:7px 10px;background:#fff7d6;border-radius:8px;font-size:13px;font-weight:700;color:#765900}.plan ul{list-style:none;padding:0;color:#555;line-height:2}.plan li i{color:var(--primary);margin-right:8px}.plan .btn{width:100%;margin-top:18px;text-align:center;text-decoration:none;box-sizing:border-box;display:inline-block}.back-home{text-align:center;margin-top:28px}.back-home a{color:#555;text-decoration:none;font-weight:700}.back-home a:hover{color:#000}.security{text-align:center;margin:40px auto 0;color:#666}.security i{color:#FFC72C;margin-right:6px}@media(max-width:700px){.plans{grid-template-columns:1fr}.plan.featured{transform:none}.pricing-header h1{font-size:32px}}
+</style></head><body>
+<header class="header"><div class="container"><div style="display:flex;justify-content:space-between;align-items:center;gap:15px"><div class="logo"><img th:src="@{/img/apitech_logo.png}" alt="ApiTech"><h2>ApiTech</h2></div><div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end"><a class="btn btn-outline" th:href="@{/}"><i class="fa-solid fa-house"></i> Inicio</a><a class="btn" th:href="@{/login/empresa}"><i class="fa-solid fa-right-to-bracket"></i> Ingresar</a></div></div></div></header>
+<main class="pricing"><div class="pricing-header"><h1>Planes ApiTech</h1><p>Elige la solución que mejor se adapte al tamaño de tu apiario.</p></div>
+<div class="plans"><article class="plan" th:each="p,stat:${planes}" th:classappend="${p.nombrePlan == 'Plan Profesional' ? ' featured' : ''}">
+<span th:if="${p.nombrePlan == 'Plan Profesional'}" class="plan-badge">MÁS POPULAR</span>
+<h2 th:text="${p.nombrePlan}">Plan Básico</h2>
+<p class="plan-description" th:if="${p.nombrePlan == 'Plan Básico'}">La opción ideal para pequeños apiarios que necesitan control y monitoreo esencial.</p>
+<p class="plan-description" th:if="${p.nombrePlan == 'Plan Profesional'}">Mayor capacidad para empresas apícolas con más colmenas y sensores.</p>
+<div class="price"><span th:text="|$${#numbers.formatDecimal(p.precio, 0, 'COMMA', 0, 'POINT')}|">$49.000</span> <small>/ mes</small></div>
+<div class="limit" th:if="${p.nombrePlan == 'Plan Básico'}"><i class="fa-solid fa-hive"></i> Hasta 20 colmenas y 20 sensores</div>
+<div class="limit" th:if="${p.nombrePlan == 'Plan Profesional'}"><i class="fa-solid fa-hive"></i> Hasta 60 colmenas y 60 sensores</div>
+<ul><li><i class="fa-solid fa-check"></i> Dashboard y monitoreo</li><li><i class="fa-solid fa-check"></i> Sensores y alertas</li><li><i class="fa-solid fa-check"></i> Reportes exportables</li><li><i class="fa-solid fa-check"></i> Gestión de producción de miel</li><li><i class="fa-solid fa-check"></i> Soporte ApiTech</li></ul>
+<a class="btn" th:href="@{/solicitud-suscripcion}"><i class="fa-solid fa-file-signature"></i> Solicitar este plan</a>
+</article></div>
+<div class="security"><i class="fa-solid fa-shield-halved"></i>La suscripción es revisada y aprobada por el equipo ApiTech.</div>
+<div class="back-home"><a th:href="@{/}"><i class="fa-solid fa-arrow-left"></i> Regresar al Home</a></div></main></body></html>

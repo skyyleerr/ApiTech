@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/base :: head('Mi suscripción')}"></head>
+<body><div th:replace="~{layout/base :: sidebar}"></div><div class="main"><div th:replace="~{layout/base :: topbar}"></div>
+<div class="header"><div><h1>💳 Mi suscripción</h1><p style="color:#666;margin-top:8px">Consulta tu plan, beneficios y vigencia.</p></div><a class="btn-secondary" th:href="@{/app/dashboard}">← Regresar</a></div>
+<style>
+.payment-panel{background:#fff;border-radius:14px;padding:24px;box-shadow:0 4px 12px rgba(0,0,0,.08);max-width:850px}
+.benefits{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}.benefit{padding:16px;border-radius:10px;background:#fff9e5}.warning{padding:16px;border-radius:10px;background:#fee2e2;color:#991b1b;margin-bottom:18px;font-weight:700}
+.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.info{padding:15px;border:1px solid #eee;border-radius:10px}.info small{display:block;color:#777;margin-bottom:5px}.info strong{font-size:16px}
+@media(max-width:800px){.benefits,.info-grid{grid-template-columns:1fr}}
+</style>
+<section class="dashboard"><div class="payment-panel">
+<div th:if="${empresaPausada or suscripcionVencida}" class="warning"><i class="fa-solid fa-triangle-exclamation"></i> La suscripción de esta empresa se encuentra vencida o el sistema está pausado. Contacta al equipo ApiTech para reactivar el servicio.</div>
+<div th:if="${suscripcion == null}" class="warning">No hay una suscripción activa registrada para esta empresa.</div>
+<div th:if="${suscripcion != null}">
+<h2 th:text="${suscripcion.plan.nombrePlan}">Plan Básico</h2>
+<p style="color:#666">Tu plan es administrado exclusivamente por ApiTech. Desde aquí no se puede cambiar de plan ni agregar tarjetas.</p>
+<div class="info-grid">
+<div class="info"><small>Estado</small><strong th:text="${suscripcion.estado}">ACTIVA</strong></div>
+<div class="info"><small>Fecha de inicio</small><strong th:text="${suscripcion.fechaInicio ?: '—'}">—</strong></div>
+<div class="info"><small>Fecha de fin</small><strong th:text="${suscripcion.fechaVencimiento ?: '—'}">—</strong></div>
+</div>
+<div class="benefits">
+<div class="benefit"><strong>Hasta 20/60 colmenas</strong><br><small th:text="${suscripcion.plan.nombrePlan.toLowerCase().contains('profesional') ? '60 colmenas' : '20 colmenas'}">20 colmenas</small></div>
+<div class="benefit"><strong>Hasta 20/60 sensores</strong><br><small th:text="${suscripcion.plan.nombrePlan.toLowerCase().contains('profesional') ? '60 sensores' : '20 sensores'}">20 sensores</small></div>
+<div class="benefit"><strong>Funciones incluidas</strong><br><small>Monitoreo, alertas y reportes</small></div>
+</div>
+</div>
+<div style="margin-top:22px;padding:14px;background:#f7f7f7;border-radius:10px;color:#666"><i class="fa-solid fa-lock"></i> Los datos de tarjeta y pagos no se gestionan desde este panel.</div>
+</div></section></div></body></html>
