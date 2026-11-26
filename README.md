@@ -124,7 +124,6 @@ Se describe la distribución física de los componentes de ApiTech MK5 y la comu
 Los usuarios acceden al sistema mediante un navegador web utilizando el protocolo HTTPS. Los sensores simulados envían mediciones al backend a través de servicios REST. El servidor de aplicaciones se comunica con el servidor de base de datos MySQL 8 mediante JDBC y el conector MySQL. El diagrama también muestra los artefactos desplegados, los protocolos de comunicación y las relaciones entre los nodos, permitiendo comprender la infraestructura física y lógica necesaria para ejecutar la solución.
 
 
-LINK PARA VER LOS DIAGRAMAS
-https://drive.google.com/drive/folders/1GrSTXDjIszJlP-mNV5lUMsIlm9zfFUq1?usp=sharing
+
 
 >>>>>>> d5670de64380e32639a049fc2d41d3ddbee6338b
