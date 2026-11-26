@@ -199,36 +199,6 @@ def procesar(usuario, tipo, r):
     return new or nueva_produccion
 
 
-def _validar_limite_colmenas(usuario, filas):
-    """
-    Verifica que la importación no exceda el límite de colmenas del plan.
-    Lanza ReglaNegocioError con mensaje descriptivo si se excede.
-    Solo considera filas que crearían colmenas nuevas (no duplicados).
-    """
-    from apps.empresas.services import limites
-    max_col, _ = limites(usuario.empresa)
-    if max_col <= 0:
-        return  # Plan sin límite explícito (0 = ilimitado)
-    actuales = usuario.empresa.colmenas.filter(archivada=False).count()
-    nombres_en_archivo = {r["nombre"] for r in filas if r.get("nombre")}
-    existentes_en_bd = set(
-        usuario.empresa.colmenas.filter(
-            archivada=False, nombre__in=nombres_en_archivo
-        ).values_list("nombre", flat=True)
-    )
-    nuevas_estimadas = len(nombres_en_archivo - existentes_en_bd)
-    if actuales + nuevas_estimadas > max_col:
-        exceso = actuales + nuevas_estimadas - max_col
-        disponibles = max(0, max_col - actuales)
-        raise ReglaNegocioError(
-            f"Importación cancelada. Tu suscripción permite un máximo de {max_col} colmenas. "
-            f"Actualmente tienes {actuales} registradas e intentas importar {nuevas_estimadas} "
-            f"nuevas, lo que excedería tu límite en {exceso} "
-            f"{'colmena' if exceso == 1 else 'colmenas'}. "
-            f"Puedes importar un máximo de {disponibles} colmenas adicionales."
-        )
-
-
 def previsualizar(usuario, archivo, tipo):
     exigir(usuario, P.IMPORTACIONES_EJECUTAR, usuario.empresa_id)
     if tipo in ("colmenas", "sensores"):
@@ -238,9 +208,6 @@ def previsualizar(usuario, archivo, tipo):
             usuario.empresa_id,
         )
     filas = leer(archivo, tipo)
-    # Validar límite de suscripción ANTES del dry-run (sólo para colmenas)
-    if tipo == "colmenas":
-        _validar_limite_colmenas(usuario, filas)
     errores = []
     # Dry run completo: verifica las mismas reglas sin guardar datos.
     with transaction.atomic():
@@ -282,9 +249,6 @@ def confirmar(usuario, lote):
             usuario.empresa_id,
         )
     validar_puede_operar(usuario.empresa)
-    # Re-validar límite en el momento de confirmar (defensa en profundidad)
-    if lote.tipo == "colmenas":
-        _validar_limite_colmenas(usuario, lote.filas)
     created = duplicados = 0
     errores = []
     for i, r in enumerate(lote.filas, 2):

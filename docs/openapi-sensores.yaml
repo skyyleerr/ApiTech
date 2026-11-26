@@ -1,0 +1,80 @@
+openapi: 3.1.0
+info:
+  title: ApiTech Sensores API
+  version: 1.0.0
+  description: Servicio externo de sensores artificiales ApiTech MK6 v1.
+servers:
+  - url: https://sensores.example/v1
+security:
+  - bearerAuth: []
+paths:
+  /sensors:
+    post:
+      summary: Registrar sensor inactivo
+      parameters:
+        - $ref: '#/components/parameters/Company'
+        - $ref: '#/components/parameters/Idempotency'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Register' }
+      responses:
+        '201': { description: Sensor creado }
+        '200': { description: Petición idempotente repetida }
+        '400': { description: Formato inválido }
+        '401': { description: No autenticado }
+        '409': { description: Conflicto de identidad/idempotencia }
+  /sensors/{sensor_id}/activate:
+    post:
+      summary: Activar sensor para una asociación
+      parameters:
+        - $ref: '#/components/parameters/SensorId'
+        - $ref: '#/components/parameters/Company'
+        - $ref: '#/components/parameters/Idempotency'
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Association' } } } }
+      responses: {'200': {description: Estado confirmado}, '201': {description: Asociación creada}, '409': {description: Conflicto}}
+  /sensors/{sensor_id}/deactivate:
+    post:
+      summary: Detener generación y conservar historial
+      parameters:
+        - $ref: '#/components/parameters/SensorId'
+        - $ref: '#/components/parameters/Company'
+        - $ref: '#/components/parameters/Idempotency'
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Association' } } } }
+      responses: {'200': {description: Estado confirmado}, '401': {description: No autenticado}, '404': {description: No encontrado}}
+  /readings:
+    get:
+      summary: Consultar lecturas con cursor estable
+      parameters:
+        - $ref: '#/components/parameters/Company'
+        - {name: sensor_id, in: query, required: true, schema: {type: string}}
+        - {name: after, in: query, required: false, schema: {type: string, maxLength: 100}}
+        - {name: limit, in: query, required: false, schema: {type: integer, minimum: 1, maximum: 100, default: 100}}
+      responses: {'200': {description: Página de lecturas}, '400': {description: Cursor inválido}, '401': {description: No autenticado}, '404': {description: No encontrado}}
+components:
+  securitySchemes:
+    bearerAuth: {type: http, scheme: bearer}
+  parameters:
+    Company: {name: X-Company-ID, in: header, required: true, schema: {type: string, maxLength: 100}}
+    Idempotency: {name: Idempotency-Key, in: header, required: true, schema: {type: string, maxLength: 255}}
+    SensorId: {name: sensor_id, in: path, required: true, schema: {type: string, maxLength: 100}}
+  schemas:
+    Register:
+      type: object
+      required: [client_ref, company_id, sensor_code, type, unit, origin]
+      properties:
+        client_ref: {type: string}
+        company_id: {type: string}
+        sensor_code: {type: string}
+        type: {type: string, enum: [TEMPERATURA, HUMEDAD, PESO]}
+        unit: {type: string, enum: ['°C', '%', kg]}
+        origin: {type: string, enum: [SIMULATED, REAL]}
+    Association:
+      type: object
+      required: [company_id, association_id, hive_id, effective_at]
+      properties:
+        company_id: {type: string}
+        association_id: {type: string}
+        hive_id: {type: string}
+        effective_at: {type: string, format: date-time}
