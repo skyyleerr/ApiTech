@@ -1,0 +1,93 @@
+<div class="estadisticas-wrap">
+
+  {# ── Tarjetas resumen ── #}
+  <div class="stats-cards">
+    <div class="stats-card">
+      <i class="fas fa-database stats-card__icon"></i>
+      <div>
+        <div class="stats-card__num">{{ total_lecturas|default:"0" }}</div>
+        <div class="stats-card__label">Lecturas totales</div>
+      </div>
+    </div>
+    <div class="stats-card">
+      <i class="fas fa-box stats-card__icon"></i>
+      <div>
+        <div class="stats-card__num">{{ total_colmenas|default:"0" }}</div>
+        <div class="stats-card__label">Colmenas con datos</div>
+      </div>
+    </div>
+    {% if dist_estado %}
+    <div class="stats-card">
+      <i class="fas fa-check-circle stats-card__icon" style="color:var(--ok)"></i>
+      <div>
+        <div class="stats-card__num">{{ dist_estado.ACTIVA|default:"0" }}</div>
+        <div class="stats-card__label">Colmenas activas</div>
+      </div>
+    </div>
+    <div class="stats-card">
+      <i class="fas fa-medkit stats-card__icon" style="color:var(--warn)"></i>
+      <div>
+        <div class="stats-card__num">{{ dist_estado.EN_TRATAMIENTO|default:"0" }}</div>
+        <div class="stats-card__label">En tratamiento</div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  {# ── Tabla por tipo de medición ── #}
+  <h3 style="margin:18px 0 10px"><i class="fas fa-chart-bar"></i> Estadísticas por tipo</h3>
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Tipo de medición</th>
+          <th>Unidad</th>
+          <th>Lecturas</th>
+          <th>Mínimo</th>
+          <th>Máximo</th>
+          <th>Promedio</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in estadisticas %}
+        <tr>
+          <td><strong>{{ s.tipo_medicion }}</strong></td>
+          <td><code>{{ s.unidad }}</code></td>
+          <td>{{ s.cantidad }}</td>
+          <td>{{ s.minimo|floatformat:3 }}</td>
+          <td>{{ s.maximo|floatformat:3 }}</td>
+          <td>{{ s.promedio|floatformat:3 }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="empty">No hay datos para los filtros seleccionados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# ── Distribución por estado (si hay datos de colmenas) ── #}
+  {% if dist_ubicacion %}
+  <h3 style="margin:18px 0 10px"><i class="fas fa-map-marker-alt"></i> Colmenas por ubicación</h3>
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Ubicación</th>
+          <th>Colmenas</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in dist_ubicacion %}
+        <tr>
+          <td>{{ item.ubicacion|default:"Sin ubicación" }}</td>
+          <td>{{ item.total }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="2" class="empty">Sin datos de ubicación.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+</div>

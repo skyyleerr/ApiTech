@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% block titulo %}Pagos y suscripciones{% endblock %}
+
+{% block contenido %}
+<header class="header">
+  <div>
+    <h1>Pagos y suscripciones</h1>
+    <p>Gestiona tu plan y revisa el historial de pagos de tu empresa</p>
+  </div>
+</header>
+
+<div class="content">
+
+  {# ── Tarjeta suscripción activa ── #}
+  <div class="pagos-grid">
+
+    <section class="suscripcion-card {% if suscripcion %}suscripcion-activa{% else %}suscripcion-vencida{% endif %}">
+      <div class="suscripcion-card__header">
+        <div class="suscripcion-card__icon">
+          <i class="fas {% if suscripcion %}fa-crown{% else %}fa-ban{% endif %}"></i>
+        </div>
+        <div>
+          <div class="suscripcion-card__label">Plan actual</div>
+          <div class="suscripcion-card__nombre">
+            {{ suscripcion.plan.nombre_plan|default:"Sin suscripción vigente" }}
+          </div>
+        </div>
+        <span class="plan-badge {% if suscripcion %}plan-badge--activo{% else %}plan-badge--vencido{% endif %}">
+          {% if suscripcion %}Activa{% else %}Inactiva{% endif %}
+        </span>
+      </div>
+
+      {% if suscripcion %}
+      <div class="suscripcion-card__meta">
+        <div class="meta-item">
+          <i class="fas fa-calendar-check"></i>
+          <span>Inicio: <strong>{{ suscripcion.fecha_inicio|date:"d/m/Y" }}</strong></span>
+        </div>
+        <div class="meta-item">
+          <i class="fas fa-calendar-xmark"></i>
+          <span>Vence: <strong>{{ suscripcion.fecha_vencimiento|date:"d/m/Y" }}</strong></span>
+        </div>
+        <div class="meta-item">
+          <i class="fas fa-box"></i>
+          <span>Colmenas: <strong>{{ suscripcion.plan.max_colmenas }}</strong></span>
+        </div>
+        <div class="meta-item">
+          <i class="fas fa-microchip"></i>
+          <span>Sensores: <strong>{{ suscripcion.plan.max_sensores }}</strong></span>
+        </div>
+      </div>
+      {% else %}
+      <p class="suscripcion-card__aviso">
+        No tienes una suscripción activa. Registra un pago para activar tu plan y continuar usando el sistema.
+      </p>
+      {% endif %}
+
+      <div class="aviso-academico">
+        <i class="fas fa-flask"></i>
+        Portal académico · pagos simulados, sin cobros bancarios reales
+      </div>
+    </section>
+
+    {# ── Formulario de pago ── #}
+    {% if request.user.rol.nombre == 'Admin_Cliente' %}
+    <section class="role-panel pago-form-panel">
+      <h2><i class="fas fa-credit-card"></i> Registrar pago simulado</h2>
+      <p class="pago-form-panel__desc">
+        Selecciona el plan que deseas activar o renovar e ingresa una referencia de comprobante.
+        El equipo ApiTech verificará el pago y activará tu suscripción.
+      </p>
+      <form method="post">
+        {% csrf_token %}
+        <div class="planes-lista">
+          {% for p in planes %}
+          <label class="plan-opcion">
+            <input type="radio" name="plan" value="{{ p.pk }}" {% if forloop.first %}checked{% endif %} required>
+            <div class="plan-opcion__card">
+              <div class="plan-opcion__nombre">{{ p.nombre_plan }}</div>
+              <div class="plan-opcion__precio">${{ p.precio|floatformat:0 }} <span>COP</span></div>
+              <div class="plan-opcion__detalles">
+                <span><i class="fas fa-clock"></i> {{ p.duracion_dias }} días</span>
+                <span><i class="fas fa-box"></i> {{ p.max_colmenas }} colmenas</span>
+                <span><i class="fas fa-microchip"></i> {{ p.max_sensores }} sensores</span>
+              </div>
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+        <div class="pago-ref-row">
+          <label for="referencia_pago"><i class="fas fa-hashtag"></i> Referencia del comprobante</label>
+          <input id="referencia_pago" name="referencia" maxlength="100"
+                 placeholder="Ej. TRF-20261122-001"
+                 class="pago-ref-input">
+        </div>
+        <button class="btn btn-pago" type="submit">
+          <i class="fas fa-paper-plane"></i> Registrar pago
+        </button>
+      </form>
+    </section>
+    {% endif %}
+
+  </div>{# /pagos-grid #}
+
+  {# ── Historial de pagos ── #}
+  <section class="role-panel">
+    <h2><i class="fas fa-receipt"></i> Historial de pagos</h2>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Plan</th>
+            <th>Fecha</th>
+            <th>Valor</th>
+            <th>Estado</th>
+            <th>Referencia</th>
+            <th>Observaciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in pagos %}
+          <tr>
+            <td><strong>{{ p.suscripcion.plan.nombre_plan }}</strong></td>
+            <td>{{ p.fecha_pago|date:"d/m/Y" }}</td>
+            <td>${{ p.valor|floatformat:0 }} COP</td>
+            <td>
+              <span class="estado-badge estado-{{ p.estado|lower }}">
+                {% if p.estado == 'VERIFICADO' %}<i class="fas fa-check-circle"></i>
+                {% elif p.estado == 'RECHAZADO' %}<i class="fas fa-times-circle"></i>
+                {% else %}<i class="fas fa-clock"></i>{% endif %}
+                {{ p.estado|title }}
+              </span>
+            </td>
+            <td>{{ p.referencia|default:"—" }}</td>
+            <td class="muted">{{ p.observaciones|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="empty">No hay pagos registrados aún.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  {# ── Historial de suscripciones ── #}
+  <section class="role-panel">
+    <h2><i class="fas fa-history"></i> Historial de suscripciones</h2>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Plan</th>
+            <th>Estado</th>
+            <th>Inicio</th>
+            <th>Vencimiento</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in suscripciones %}
+          <tr>
+            <td><strong>{{ s.plan }}</strong></td>
+            <td>
+              <span class="estado-badge estado-{{ s.estado|lower }}">
+                {% if s.estado == 'ACTIVA' %}<i class="fas fa-check-circle"></i>
+                {% elif s.estado == 'VENCIDA' or s.estado == 'CANCELADA' %}<i class="fas fa-times-circle"></i>
+                {% else %}<i class="fas fa-pause-circle"></i>{% endif %}
+                {{ s.estado|title }}
+              </span>
+            </td>
+            <td>{{ s.fecha_inicio|date:"d/m/Y"|default:"—" }}</td>
+            <td>{{ s.fecha_vencimiento|date:"d/m/Y"|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="empty">Sin historial de suscripciones.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</div>{# /content #}
+{% endblock %}

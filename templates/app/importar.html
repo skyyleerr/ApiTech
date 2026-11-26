@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+{% block titulo %}Importar datos{% endblock %}
+
+{% block contenido %}
+<header class="header">
+  <div>
+    <h1>Importar datos</h1>
+    <p>Carga masiva de colmenas desde CSV o Excel</p>
+  </div>
+</header>
+
+<div class="content">
+
+  {# ── Info de límite de suscripción ── #}
+  {% if limite_colmenas %}
+  <div class="limite-banner">
+    <div class="limite-banner__icon"><i class="fas fa-box"></i></div>
+    <div class="limite-banner__texto">
+      <strong>Capacidad de tu plan:</strong>
+      {{ colmenas_actuales }} de {{ limite_colmenas }} colmenas usadas
+      <span class="limite-disponibles">· {{ colmenas_disponibles }} disponibles para importar</span>
+    </div>
+    <div class="limite-barra-wrap">
+      <div class="limite-barra" style="width: {% widthratio colmenas_actuales limite_colmenas 100 %}%"></div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="importar-grid">
+
+    {# ── Panel de carga ── #}
+    <section class="role-panel importar-panel">
+      <h2><i class="fas fa-upload"></i> Cargar archivo</h2>
+      <p>Sube un archivo CSV (UTF-8) o Excel (.xlsx) con los datos de tus colmenas.
+         Se validará el archivo antes de guardar nada. Máximo 2.000 filas y 5 MB.</p>
+
+      <form method="post" enctype="multipart/form-data" id="form-importar">
+        {% csrf_token %}
+
+        {# Selector de tipo — solo mostramos colmenas como opción principal #}
+        {% if 'colmenas.gestionar' in permisos %}
+        <div class="tipo-selector">
+          <label>¿Qué deseas importar?</label>
+          <div class="tipo-opciones">
+            <label class="tipo-opcion {% if not request.POST.tipo or request.POST.tipo == 'colmenas' %}tipo-opcion--activo{% endif %}">
+              <input type="radio" name="tipo" value="colmenas"
+                     {% if not request.POST.tipo or request.POST.tipo == 'colmenas' %}checked{% endif %}
+                     onchange="actualizarTipo(this.value)">
+              <i class="fas fa-box"></i> Colmenas
+            </label>
+            <label class="tipo-opcion {% if request.POST.tipo == 'historico' %}tipo-opcion--activo{% endif %}">
+              <input type="radio" name="tipo" value="historico"
+                     {% if request.POST.tipo == 'historico' %}checked{% endif %}
+                     onchange="actualizarTipo(this.value)">
+              <i class="fas fa-chart-line"></i> Histórico de mediciones
+            </label>
+            <label class="tipo-opcion {% if request.POST.tipo == 'sensores' %}tipo-opcion--activo{% endif %}">
+              <input type="radio" name="tipo" value="sensores"
+                     {% if request.POST.tipo == 'sensores' %}checked{% endif %}
+                     onchange="actualizarTipo(this.value)">
+              <i class="fas fa-microchip"></i> Sensores
+            </label>
+          </div>
+        </div>
+        {% else %}
+        <input type="hidden" name="tipo" value="historico">
+        {% endif %}
+
+        {# Drop zone #}
+        <div class="drop-zone" id="drop-zone">
+          <input type="file" name="archivo" id="archivo-input"
+                 accept=".csv,.xlsx" required class="drop-zone__input">
+          <div class="drop-zone__contenido" id="drop-contenido">
+            <i class="fas fa-cloud-upload-alt drop-zone__icono"></i>
+            <p class="drop-zone__texto">Arrastra tu archivo aquí</p>
+            <p class="drop-zone__sub">o haz clic para seleccionarlo</p>
+            <span class="drop-zone__formatos">CSV · Excel (.xlsx) · máx. 5 MB</span>
+          </div>
+          <div class="drop-zone__archivo" id="drop-archivo" style="display:none">
+            <i class="fas fa-file-alt drop-zone__archivo-icono"></i>
+            <div>
+              <p class="drop-zone__archivo-nombre" id="nombre-archivo"></p>
+              <p class="drop-zone__archivo-size" id="size-archivo"></p>
+            </div>
+            <button type="button" class="drop-zone__quitar" onclick="quitarArchivo()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+
+        {# Info columnas requeridas #}
+        <div class="columnas-info" id="info-colmenas">
+          <strong><i class="fas fa-info-circle"></i> Columnas requeridas para Colmenas:</strong>
+          <code>nombre</code> <code>ubicacion</code> <code>estado</code>
+        </div>
+        <div class="columnas-info" id="info-historico" style="display:none">
+          <strong><i class="fas fa-info-circle"></i> Columnas requeridas para Histórico:</strong>
+          <code>fecha</code> <code>colmena</code> <code>asociacion</code>
+          <code>tipo</code> <code>valor</code> <code>unidad</code>
+          <code>origen</code> <code>produccion</code> <code>observaciones</code>
+        </div>
+        <div class="columnas-info" id="info-sensores" style="display:none">
+          <strong><i class="fas fa-info-circle"></i> Columnas requeridas para Sensores:</strong>
+          <code>codigo</code> <code>tipo</code> <code>modelo</code> <code>fabricante</code>
+        </div>
+
+        <div class="importar-acciones">
+          <button class="btn" type="submit" id="btn-validar">
+            <i class="fas fa-search"></i> Validar y previsualizar
+          </button>
+        </div>
+      </form>
+    </section>
+
+    {# ── Plantillas ── #}
+    <section class="role-panel plantillas-panel">
+      <h2><i class="fas fa-file-download"></i> Plantillas</h2>
+      <p>Descarga una plantilla con las columnas correctas para cada tipo de importación.</p>
+      <div class="plantillas-lista">
+        <a href="{% url 'plantilla' 'csv' %}?tipo=colmenas" class="plantilla-item">
+          <i class="fas fa-file-csv"></i>
+          <div>
+            <strong>Colmenas CSV</strong>
+            <span>nombre, ubicacion, estado</span>
+          </div>
+          <i class="fas fa-download plantilla-item__dl"></i>
+        </a>
+        <a href="{% url 'plantilla' 'csv' %}?tipo=historico" class="plantilla-item">
+          <i class="fas fa-file-csv"></i>
+          <div>
+            <strong>Histórico CSV</strong>
+            <span>mediciones y producción</span>
+          </div>
+          <i class="fas fa-download plantilla-item__dl"></i>
+        </a>
+        <a href="{% url 'plantilla' 'xlsx' %}?tipo=historico" class="plantilla-item">
+          <i class="fas fa-file-excel"></i>
+          <div>
+            <strong>Histórico Excel</strong>
+            <span>mediciones y producción</span>
+          </div>
+          <i class="fas fa-download plantilla-item__dl"></i>
+        </a>
+        <a href="{% url 'plantilla' 'csv' %}?tipo=sensores" class="plantilla-item">
+          <i class="fas fa-file-csv"></i>
+          <div>
+            <strong>Sensores CSV</strong>
+            <span>codigo, tipo, modelo, fabricante</span>
+          </div>
+          <i class="fas fa-download plantilla-item__dl"></i>
+        </a>
+      </div>
+      <p class="muted small" style="margin-top:14px">
+        Para históricos usa el número visible de colmena y el identificador de asociación
+        que aparece en la sección Sensores.
+      </p>
+    </section>
+  </div>{# /importar-grid #}
+
+  {# ── Historial de importaciones ── #}
+  <section class="role-panel">
+    <h2><i class="fas fa-history"></i> Mis importaciones</h2>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Archivo</th>
+            <th>Fecha</th>
+            <th>Tipo</th>
+            <th>Estado</th>
+            <th>Resultado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for l in lotes %}
+          <tr>
+            <td>
+              <a href="{% url 'importacion_detalle' l.pk %}">
+                <i class="fas fa-file-alt"></i> {{ l.nombre }}
+              </a>
+            </td>
+            <td>{{ l.fecha|date:"d/m/Y H:i" }}</td>
+            <td>
+              <span class="tipo-badge tipo-{{ l.tipo }}">{{ l.tipo|title }}</span>
+            </td>
+            <td>
+              {% if l.confirmado %}
+                <span class="estado-badge estado-verificado"><i class="fas fa-check-circle"></i> Procesada</span>
+              {% else %}
+                <span class="estado-badge estado-pendiente"><i class="fas fa-clock"></i> Pendiente</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if l.resultado %}
+                <span class="ok">{{ l.resultado.creadas }} nuevas</span>
+                {% if l.resultado.rechazadas %}
+                  <span class="bad">{{ l.resultado.rechazadas }} errores</span>
+                {% endif %}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="empty">No hay importaciones previas.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</div>{# /content #}
+
+<script>
+// Drop zone
+const dropZone = document.getElementById('drop-zone');
+const input = document.getElementById('archivo-input');
+
+dropZone.addEventListener('click', () => input.click());
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drop-zone--hover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drop-zone--hover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drop-zone--hover');
+  if (e.dataTransfer.files.length) {
+    input.files = e.dataTransfer.files;
+    mostrarArchivo(e.dataTransfer.files[0]);
+  }
+});
+input.addEventListener('change', () => { if (input.files.length) mostrarArchivo(input.files[0]); });
+
+function mostrarArchivo(f) {
+  document.getElementById('drop-contenido').style.display = 'none';
+  const da = document.getElementById('drop-archivo');
+  da.style.display = 'flex';
+  document.getElementById('nombre-archivo').textContent = f.name;
+  document.getElementById('size-archivo').textContent = (f.size / 1024).toFixed(1) + ' KB';
+}
+function quitarArchivo() {
+  input.value = '';
+  document.getElementById('drop-contenido').style.display = '';
+  document.getElementById('drop-archivo').style.display = 'none';
+}
+
+// Tipo
+function actualizarTipo(val) {
+  document.querySelectorAll('.tipo-opcion').forEach(el => el.classList.remove('tipo-opcion--activo'));
+  event.target.closest('.tipo-opcion').classList.add('tipo-opcion--activo');
+  ['colmenas','historico','sensores'].forEach(t => {
+    document.getElementById('info-' + t).style.display = val === t ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

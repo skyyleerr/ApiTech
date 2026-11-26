@@ -1,0 +1,347 @@
+APITECH MK6 — EJECUTAR, INSTALAR Y CONSERVAR EL PROYECTO
+Guía para Windows CMD (Símbolo del sistema). 21/11/2026.
+Este archivo se abre con Bloc de notas. No es un programa ejecutable.
+
+0. QUÉ CONTIENE Y QUÉ NECESITAS
+
+El backend es Python/Django. No necesitas Java, Maven ni Spring Boot.
+La carpeta que contiene manage.py es la raíz del proyecto.
+Hay dos formas de empezar:
+ A) Demostración inmediata con SQLite, sin instalar un servidor de base de datos.
+ B) Instalación definitiva con MySQL/MariaDB y traslado opcional de MK5.
+No mezcles una base de demostración con el destino de una migración real.
+
+Usa Python 3.13 o 3.12 de 64 bits. Se comprobó este paquete con Python 3.12.
+Para Windows con mysqlclient se recomienda crear el entorno con Python 3.13
+(o 3.12), aunque tengas también Python 3.14. No necesitas desinstalarlo.
+Descarga Python desde https://www.python.org/downloads/windows/ si falta.
+Marca la instalación del lanzador py. Abre una CMD nueva después de instalar.
+
+La base definitiva requiere MySQL 8.0.16 o superior, o MariaDB 10.5 o superior.
+Se probó con MariaDB 11.8.6. Si tu XAMPP tiene MariaDB 10.4.32, NO cambies las
+comprobaciones de Django para forzarlo: usa SQLite para explorar o instala una
+versión compatible en otro puerto (por ejemplo 3307). No reemplaces el motor
+de una instalación existente sin respaldarla.
+Documentación oficial: https://docs.djangoproject.com/en/5.2/ref/databases/
+
+1. GUARDAR Y DESCOMPRIMIR
+
+Crea C:\Proyectos. Extrae el ZIP allí usando "Extraer todo".
+Debes obtener C:\Proyectos\ApiTech_MK6\manage.py.
+No ejecutes el proyecto desde la vista comprimida del ZIP.
+Abre CMD y escribe:
+
+cd /d C:\Proyectos\ApiTech_MK6
+dir
+py -0p
+py -3.13 -m venv .venv
+.venv\Scripts\activate
+python --version
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+copy .env.example .env
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+notepad .env
+
+Si solo tienes Python 3.12, sustituye únicamente el comando de creación por:
+py -3.12 -m venv .venv
+
+Copia la clave generada en DJANGO_SECRET_KEY. Para uso local deja:
+DJANGO_DEBUG=True
+DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost
+APP_TIME_ZONE=America/Bogota
+
+Guarda .env con ese nombre exacto, no .env.txt. En CMD comprueba:
+dir /a .env
+
+2. OPCIÓN A — DEMOSTRACIÓN LOCAL CON SQLITE
+
+En .env conserva DB_ENGINE=sqlite. No necesitas XAMPP ni importar un SQL.
+Ejecuta en la misma CMD con (.venv) activa:
+
+python manage.py check
+python manage.py migrate
+python manage.py cargar_demo --password "Demo-Apitech-2026!"
+python manage.py runserver
+
+Abre http://127.0.0.1:8000/
+Acceso del equipo ApiTech:
+  admin.apitech@demo.invalid
+  operador.apitech@demo.invalid
+Acceso cliente: primero NIT 900123456-7, después:
+  admin@demo-cliente.invalid
+  empleado@demo-cliente.invalid
+Contraseña de las cuentas nuevas: Demo-Apitech-2026!
+
+Los datos demo son ficticios, fijos y están marcados DEMOSTRACION/SIMULADO.
+El comando NO instala un generador de sensores. Sus lecturas son históricas:
+puedes ver gráficos aunque el resumen diga "Datos desactualizados".
+Al repetir cargar_demo no se duplican los registros ni se cambia la contraseña
+de usuarios que ya existían. No uses estas cuentas en una instalación pública.
+
+Si quieres empezar vacío, omite cargar_demo y crea tu administrador:
+python manage.py createsuperuser
+
+Se solicitarán correo, nombre y contraseña (la contraseña no se ve al escribir).
+Entra por "Soy del equipo ApiTech". Registra empresa, administrador inicial y
+plan/pago desde los módulos; también puedes probar la solicitud pública de alta.
+
+3. OPCIÓN B — MY SQL / MARIADB, BASE NUEVA
+
+Detén runserver con Ctrl+C antes de cambiar .env.
+Instala o inicia un servidor compatible. Comprueba qué puerto utiliza.
+Instala el controlador dentro de (.venv):
+
+python -m pip install -r requirements-mysql.txt
+
+Abre el cliente SQL. Si mysql no está en PATH, usa su ruta completa real, por
+ ejemplo "C:\Program Files\MariaDB 11.8\bin\mariadb.exe". El nombre del directorio
+ puede cambiar según tu instalación. En los comandos siguientes mysql puede
+ sustituirse por mariadb. La opción -p solicita la contraseña sin mostrarla.
+
+mysql -h 127.0.0.1 -P 3306 -u root -p
+
+Dentro del cliente SQL ejecuta (cambia la contraseña del ejemplo):
+
+CREATE DATABASE apitech_mk6 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'apitech_mk6'@'localhost' IDENTIFIED BY 'ESCOGE_UNA_CLAVE_PROPIA';
+GRANT ALL PRIVILEGES ON apitech_mk6.* TO 'apitech_mk6'@'localhost';
+EXIT;
+
+No ejecutes DROP DATABASE sobre tu MK5. Si la base ya existe, verifica su
+contenido y usa otro nombre para una instalación limpia.
+
+En .env cambia a:
+DB_ENGINE=mysql
+DB_NAME=apitech_mk6
+DB_USER=apitech_mk6
+DB_PASSWORD=ESCOGE_UNA_CLAVE_PROPIA
+DB_HOST=127.0.0.1
+DB_PORT=3306
+
+Si tu instancia nueva usa 3307, cambia tanto DB_PORT como -P en los comandos.
+
+Forma recomendada de crear todas las tablas y semillas:
+python manage.py migrate
+python manage.py check
+
+Las migraciones crean las tablas de Django y las reglas MK6, roles, permisos,
+planes y umbrales globales de demostración. No crean usuarios con claves fijas.
+
+Alternativa: restaurar database\schema_mk6.sql en una BD NUEVA y VACÍA:
+mysql -h 127.0.0.1 -P 3306 -u apitech_mk6 -p apitech_mk6 < database\schema_mk6.sql
+python manage.py migrate
+python manage.py check
+
+El SQL incluye historial django_migrations y semillas. Es una alternativa a
+la primera ejecución de migrate; NO lo importes encima de tablas existentes.
+No contiene DROP DATABASE, contraseñas, usuarios de ejemplo ni datos reales.
+
+Para instalación nueva sin trasladar MK5:
+python manage.py createsuperuser
+python manage.py runserver
+
+Si vas a trasladar MK5, todavía NO crees usuarios ni cargues demo en el destino.
+Sigue la sección 4 primero.
+
+4. TRASLADAR DATOS MK5 SIN MODIFICAR EL ORIGEN
+
+El ZIP MK5 aportado contiene database\schema.sql. El archivo antiguo incluye
+DROP DATABASE y órdenes de administración; NO debes ejecutarlo sobre tus datos
+actuales. Este paquete se basa en su modelo, pero usa migraciones y SQL nuevos.
+
+A. Detén la aplicación Spring Boot y sus procesos que escriben datos.
+B. Desde CMD haz un respaldo real del MK5 (sin --databases para no fijar USE):
+
+mkdir respaldos
+mysqldump -h 127.0.0.1 -P 3306 -u root -p --single-transaction --routines --triggers apitech > respaldos\mk5_antes.sql
+
+Con MariaDB el ejecutable puede llamarse mariadb-dump. Usa la ruta completa si
+no está en PATH. Comprueba que el archivo no está vacío y que el dump terminó
+sin errores. Conserva una segunda copia fuera de la carpeta de trabajo.
+
+C. Restaura una copia llamada apitech_mk5_copia en el servidor compatible.
+Puedes crearla y cargarla desde CMD:
+
+mysql -h 127.0.0.1 -P 3306 -u root -p -e "CREATE DATABASE apitech_mk5_copia CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+mysql -h 127.0.0.1 -P 3306 -u root -p apitech_mk5_copia < respaldos\mk5_antes.sql
+mysql -h 127.0.0.1 -P 3306 -u root -p -e "GRANT SELECT ON apitech_mk5_copia.* TO 'apitech_mk6'@'localhost';"
+
+Si origen y destino están en servidores/versiones diferentes, realiza la copia
+con las herramientas compatibles y revisa errores de COLLATION/DEFINER/checks.
+No ignores un error de restauración. El importador exige las tablas originales
+completas. El origen es de solo lectura y se conserva intacto.
+
+D. Confirma que el destino apitech_mk6 NO tiene empresas ni usuarios.
+En .env añade:
+LEGACY_DB_NAME=apitech_mk5_copia
+
+E. Validación sin guardar:
+python manage.py migrar_mk5
+
+El comando inserta dentro de una transacción, verifica conteos y relaciones y
+revierte al terminar. Si hay incoherencias, también revierte y describe el error.
+No uses --fake ni borres restricciones para saltar errores: corrige la COPIA
+con una decisión documentada. No reescribas el MK5 original.
+
+F. Aplicación definitiva sobre el destino vacío:
+python manage.py migrar_mk5 --aplicar
+python manage.py check
+python manage.py runserver
+
+Se preservan las PK antiguas, hashes BCrypt, fechas e históricos. Los números
+visibles de colmena se asignan desde 1 por empresa. El primer acceso correcto
+actualiza el hash BCrypt a PBKDF2 sin pedir cambio de clave. Los permisos se
+normalizan a la matriz MK6. Los sensores quedan con órdenes pendientes para la
+API externa, todavía sin una conexión habilitada automáticamente.
+
+Zona horaria esperada de las fechas antiguas: America/Bogota. El comando usa
+--offset-timestamp=-05:00 para la lectura de TIMESTAMP del origen. Si el origen
+fue configurado en UTC, usa ambos parámetros explícitos:
+python manage.py migrar_mk5 --zona-origen UTC --offset-timestamp=+00:00
+Después de validar, repite con los mismos parámetros y --aplicar.
+Si hay zonas diferentes entre DATETIME y TIMESTAMP, consulta docs/Modelo_Datos.md
+antes de trasladar; no ajustes horas adivinando.
+
+Verifica empresas, usuarios, colmenas, sensores, pagos y una muestra de lecturas
+contra el origen. Reiniciar migrar_mk5 sobre un destino poblado se rechaza.
+Para revertir, detén MK6 y conserva su respaldo; el MK5 original no se alteró.
+No mantengas los dos sistemas escribiendo simultáneamente sobre una misma BD.
+
+5. CONECTAR LA API DE KAREN CUANDO ESTÉ DISPONIBLE
+
+Lee docs\Contrato_API_Karen.md. La API no viene publicada ni con credenciales
+inventadas. El sistema abre normalmente aunque aún no exista dicha API.
+
+Identifica la PK interna de cada empresa:
+python manage.py shell -c "from apps.empresas.models import Empresa; print(list(Empresa.objects.values('id','nit','nombre_empresa')))"
+
+Ejemplo para la empresa interna 1, en .env:
+SENSOR_API_URL_1=https://dominio-real-de-karen/v1
+SENSOR_API_TOKEN_1=TOKEN_REAL_DE_ESA_EMPRESA
+
+Para empresa 2 usa SENSOR_API_URL_2 y SENSOR_API_TOKEN_2 con su token propio.
+La API debe validar que el token pertenece a la empresa y todas las referencias.
+Los números visibles de colmena NO se usan como hive_id externo.
+Reinicia Django y cualquier proceso de sincronización después de cambiar .env.
+
+Entra como Admin_Cliente:
+1) Sensores -> Nuevo sensor.
+2) Asocia el sensor a una colmena propia Estable.
+3) Pulsa Iniciar monitoreo.
+4) Conectar API externa -> Habilitar conexión -> Sincronizar ahora.
+5) Revisa confirmación y lecturas en la colmena concreta y en Reportes.
+
+Para sincronizar continuamente, abre una SEGUNDA CMD:
+cd /d C:\Proyectos\ApiTech_MK6
+.venv\Scripts\activate
+python manage.py sincronizar_sensores --continuo --intervalo 60
+
+Deja la primera ventana con runserver y esta segunda con el sincronizador.
+Ctrl+C detiene cada proceso. El navegador refresca consultas cada 30 segundos;
+el comando consulta la API cada 60 segundos en este ejemplo. Ninguno genera
+datos artificiales en Django. Karen debe tener su propio generador externo.
+
+Si Karen desarrolla en localhost y conoce el contrato, puedes usar HTTP local
+solo con SENSOR_API_ALLOW_LOCAL=True y una URL http://127.0.0.1:PUERTO/v1.
+Esto no habilita HTTP para direcciones remotas. En entrega remota utiliza HTTPS.
+Si falla la conexión, conserva datos y órdenes pendientes; no borres cursores.
+
+6. EJECUTAR OTRA VEZ UN PROYECTO YA INSTALADO
+
+cd /d C:\Proyectos\ApiTech_MK6
+.venv\Scripts\activate
+python manage.py check
+python manage.py migrate
+python manage.py runserver
+
+No repitas createsuperuser, no vuelvas a importar el SQL y no elimines la BD.
+Para salir: Ctrl+C y después deactivate.
+Para vencimientos (ejecutar diariamente o antes de una demostración):
+python manage.py vencer_suscripciones
+Para programarlo en Windows, usa Programador de tareas con el ejecutable
+C:\Proyectos\ApiTech_MK6\.venv\Scripts\python.exe, argumentos
+"C:\Proyectos\ApiTech_MK6\manage.py" vencer_suscripciones
+y directorio de inicio C:\Proyectos\ApiTech_MK6.
+
+7. COMPROBAR LA INSTALACIÓN
+
+python manage.py check
+python manage.py makemigrations --check --dry-run
+python manage.py test tests
+
+Con MySQL/MariaDB el usuario de pruebas necesita crear/eliminar UNA base de
+pruebas. Desde el cliente SQL como administrador puede otorgarse exclusivamente:
+GRANT ALL PRIVILEGES ON test_apitech_mk6.* TO 'apitech_mk6'@'localhost';
+
+El runner crea test_apitech_mk6 y la elimina al terminar. Nunca apuntes las
+pruebas a la BD productiva usando trucos o --keepdb con una base real.
+En SQLite las pruebas usan una base temporal independiente.
+Lee docs\Pruebas.md para saber qué se verificó en esta entrega.
+
+8. RESPALDAR Y RESTAURAR MK6
+
+SQLite: detén runserver y sincronizador antes de copiar:
+mkdir respaldos
+copy db.sqlite3 respaldos\apitech_mk6_respaldo.sqlite3
+Para restaurar, conserva primero una copia de la BD actual y reemplaza el
+archivo solo con todos los procesos detenidos.
+
+MySQL/MariaDB:
+mysqldump -h 127.0.0.1 -P 3306 -u apitech_mk6 -p --single-transaction --triggers apitech_mk6 > respaldos\apitech_mk6_respaldo.sql
+
+Restaura en una base NUEVA, cambia DB_NAME para probarla y revisa conteos antes
+de adoptar esa copia. Un respaldo con datos no se sustituye por schema_mk6.sql:
+schema_mk6.sql contiene estructura y semillas, no tus operaciones.
+
+9. GUARDAR CAMBIOS Y SUBIR DOCUMENTACIÓN A GITHUB
+
+Guarda archivos en la carpeta del proyecto usando tu editor. .gitignore excluye
+.env, entornos, SQLite y respaldos. No subas contraseñas, tokens, dumps reales
+ni datos de clientes. Revisa siempre git status antes de git add.
+
+Si vas a incorporar este ZIP al repositorio ApiTech existente, hazlo en una
+rama nueva de una copia de ese repositorio. No sobrescribas main sin revisar.
+Ejemplo desde esa copia, una vez copiados los archivos del proyecto:
+
+git switch -c mk6-django
+git status
+git add .
+git commit -m "Migrar ApiTech MK6 a Django y documentar integración externa"
+git push -u origin mk6-django
+
+Crea el pull request desde GitHub. Incluye Requisitos_Historias_MK6.md, docs/,
+las migraciones, las pruebas y database/schema_mk6.sql. No incluyas work/ de
+esta sesión: no forma parte del ZIP. El cronograma/backlog sugerido está en
+ docs/Equipo_y_Backlog.md; el paquete no modifica GitHub automáticamente.
+
+10. PROBLEMAS FRECUENTES
+
+"No module named django": activa .venv y usa python -m pip install -r requirements.txt.
+"py -3.13 no encontrado": comprueba py -0p; usa -3.12 si está disponible.
+"mysqlclient wheel/build": usa Python 3.12/3.13 64 bits y pip actualizado. No
+sustituyas el controlador ni modifiques Django para saltarte una incompatibilidad.
+"MariaDB 10.5 or later is required": tu motor 10.4 no es compatible; usa un
+servidor compatible separado o SQLite. Verifica puerto 3306/3307.
+"Access denied": revisa usuario, contraseña y permisos de esa instancia.
+"Can't connect": inicia el servicio y confirma puerto/host con el cliente SQL.
+"No such table"/"Table doesn't exist": ejecuta migrate sobre la BD de .env.
+"already exists" al cargar SQL: el SQL se intentó importar sobre tablas existentes;
+no sigas ni borres datos para arreglarlo. Usa una BD nueva o solo migrate.
+"destino ya contiene empresas/usuarios": no mezcles demo/usuarios nuevos con el
+traslado MK5; crea otra base vacía y vuelve a validar.
+"Sin lecturas": configura la API, registra/asocia/activa y ejecuta sincronizador.
+"Datos desactualizados": última lectura mayor de cinco minutos; el histórico se
+conserva. No es un error que se deba corregir inventando números.
+"API incompatible": revisa company_id, sensor_id, asociación, contrato y zona
+horaria con Karen; una lectura ajena bloquea su página y no avanza cursor.
+"Sesión no entra por HTTP": local usa DJANGO_DEBUG=True. Cookies seguras con
+DEBUG=False requieren HTTPS.
+
+11. DESPLIEGUE PÚBLICO
+
+runserver es para desarrollo y sustentación local. Para alojamiento público
+configura un servidor WSGI, HTTPS, estáticos (collectstatic), hosts concretos,
+DJANGO_DEBUG=False, clave propia, permisos mínimos de BD, procesos supervisados
+y respaldos periódicos. Ejecuta check --deploy y revisa sus resultados.
+Este ZIP no configura un proveedor de hosting ni procesa cobros bancarios reales.
