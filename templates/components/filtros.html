@@ -1,1 +1,77 @@
-<form class="filters" method="get"><label>Desde <input type="date" name="desde" value="{{ request.GET.desde }}"><input type="time" name="desde_hora" aria-label="Hora inicial" value="{{ request.GET.desde_hora }}"></label><label>Hasta <input type="date" name="hasta" value="{{ request.GET.hasta }}"><input type="time" name="hasta_hora" aria-label="Hora final" value="{{ request.GET.hasta_hora }}"></label><select name="tipo" aria-label="Tipo"><option value="">Todos los tipos</option>{% for t in tipos_medicion %}<option {% if request.GET.tipo == t %}selected{% endif %}>{{ t }}</option>{% endfor %}</select>{% if colmenas %}<select name="colmena" aria-label="Colmena"><option value="">Todas las colmenas</option>{% for c in colmenas %}<option value="{{ c.pk }}" {% if request.GET.colmena == c.pk|stringformat:'s' %}selected{% endif %}>{{ c.numero_historico }} · {{ c.nombre }}{% if c.archivada %} (archivada){% endif %}</option>{% endfor %}</select>{% endif %}{% if sensores %}<select name="sensor" aria-label="Sensor"><option value="">Todos los sensores</option>{% for s in sensores %}<option value="{{ s.pk }}" {% if request.GET.sensor == s.pk|stringformat:'s' %}selected{% endif %}>{{ s.codigo }}</option>{% endfor %}</select>{% endif %}<select name="origen" aria-label="Origen"><option value="">Todos los orígenes</option><option {% if request.GET.origen == 'SIMULADO' %}selected{% endif %}>SIMULADO</option><option {% if request.GET.origen == 'REAL' %}selected{% endif %}>REAL</option></select><button class="btn">Filtrar</button><a href="{{ request.path }}">Limpiar</a></form>
+<form class="filters" method="get">
+  <div class="filters__grupo">
+    <label class="filters__label">Desde</label>
+    <div class="filters__fecha-row">
+      <input type="date" name="desde" value="{{ request.GET.desde }}" class="filters__input">
+      <input type="time" name="desde_hora" aria-label="Hora inicial" value="{{ request.GET.desde_hora }}" class="filters__input filters__input--hora">
+    </div>
+  </div>
+
+  <div class="filters__grupo">
+    <label class="filters__label">Hasta</label>
+    <div class="filters__fecha-row">
+      <input type="date" name="hasta" value="{{ request.GET.hasta }}" class="filters__input">
+      <input type="time" name="hasta_hora" aria-label="Hora final" value="{{ request.GET.hasta_hora }}" class="filters__input filters__input--hora">
+    </div>
+  </div>
+
+  <div class="filters__grupo">
+    <label class="filters__label">Tipo de medición</label>
+    <select name="tipo" aria-label="Tipo" class="filters__select">
+      <option value="">Todos los tipos</option>
+      {% for t in tipos_medicion %}
+      <option {% if request.GET.tipo == t %}selected{% endif %}>{{ t }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  {% if colmenas %}
+  <div class="filters__grupo">
+    <label class="filters__label">Colmena</label>
+    <select name="colmena" aria-label="Colmena" class="filters__select">
+      <option value="">Todas las colmenas</option>
+      {% for c in colmenas %}
+      <option value="{{ c.pk }}" {% if request.GET.colmena == c.pk|stringformat:'s' %}selected{% endif %}>
+        {{ c.numero_historico }} · {{ c.nombre }}{% if c.archivada %} (archivada){% endif %}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="filters__grupo">
+    <label class="filters__label">Estado colmena</label>
+    <select name="estado_colmena" aria-label="Estado de colmena" class="filters__select">
+      <option value="">Todos los estados</option>
+      <option {% if request.GET.estado_colmena == 'ACTIVA' %}selected{% endif %} value="ACTIVA">Activa</option>
+      <option {% if request.GET.estado_colmena == 'EN_TRATAMIENTO' %}selected{% endif %} value="EN_TRATAMIENTO">En tratamiento</option>
+      <option {% if request.GET.estado_colmena == 'INACTIVA' %}selected{% endif %} value="INACTIVA">Inactiva</option>
+    </select>
+  </div>
+  {% endif %}
+
+  {% if sensores %}
+  <div class="filters__grupo">
+    <label class="filters__label">Sensor</label>
+    <select name="sensor" aria-label="Sensor" class="filters__select">
+      <option value="">Todos los sensores</option>
+      {% for s in sensores %}
+      <option value="{{ s.pk }}" {% if request.GET.sensor == s.pk|stringformat:'s' %}selected{% endif %}>{{ s.codigo }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endif %}
+
+  <div class="filters__grupo">
+    <label class="filters__label">Origen</label>
+    <select name="origen" aria-label="Origen" class="filters__select">
+      <option value="">Todos los orígenes</option>
+      <option {% if request.GET.origen == 'SIMULADO' %}selected{% endif %} value="SIMULADO">Simulado</option>
+      <option {% if request.GET.origen == 'REAL' %}selected{% endif %} value="REAL">Real</option>
+    </select>
+  </div>
+
+  <div class="filters__acciones">
+    <button class="btn" type="submit"><i class="fas fa-filter"></i> Filtrar</button>
+    <a href="{{ request.path }}" class="btn-secondary"><i class="fas fa-times"></i> Limpiar</a>
+  </div>
+</form>

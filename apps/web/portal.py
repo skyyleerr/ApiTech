@@ -713,13 +713,19 @@ def importar(request):
             return redirect("importacion_detalle", pk=lote.pk)
         except ReglaNegocioError as e:
             messages.error(request, str(e))
+    e = request.user.empresa
+    max_col, _ = limites(e)
+    actuales = e.colmenas.filter(archivada=False).count()
     return render(
         request,
         "app/importar.html",
         {
             "lotes": LoteImportacion.objects.filter(
-                empresa=request.user.empresa, usuario=request.user
-            ).order_by("-fecha")[:50]
+                empresa=e, usuario=request.user
+            ).order_by("-fecha")[:50],
+            "limite_colmenas": max_col if max_col > 0 else None,
+            "colmenas_actuales": actuales,
+            "colmenas_disponibles": max(0, max_col - actuales) if max_col > 0 else None,
         },
     )
 
@@ -736,10 +742,19 @@ def importacion_detalle(request, pk):
             return redirect("importacion_detalle", pk=pk)
         except ReglaNegocioError as e:
             messages.error(request, str(e))
+    filas_con_error = {e["fila"] for e in lote.errores}
+    filas_validas = len([
+        r for i, r in enumerate(lote.filas, 2)
+        if i not in filas_con_error
+    ])
     return render(
         request,
         "app/importacion_detalle.html",
-        {"lote": lote, "filas": lote.filas[:30]},
+        {
+            "lote": lote,
+            "filas": lote.filas[:30],
+            "filas_validas": filas_validas,
+        },
     )
 
 
@@ -760,8 +775,24 @@ def ayuda(request):
 
 @requiere_permiso(P.REPORTES_VER)
 def reportes(request):
-    qs = lecturas_filtradas(request, lecturas(request.user.empresa)).order_by(
-        "-fecha", "-pk"
+    e = request.user.empresa
+    qs = lecturas_filtradas(request, lecturas(e)).order_by("-fecha", "-pk")
+    # Estadísticas de colmenas (filtradas por estado si se aplicó filtro)
+    cols_qs = e.colmenas.filter(archivada=False)
+    estado_filtro = request.GET.get("estado_colmena")
+    if estado_filtro:
+        cols_qs = cols_qs.filter(estado=estado_filtro)
+    colmena_filtro = request.GET.get("colmena")
+    if colmena_filtro and colmena_filtro.isdigit():
+        cols_qs = cols_qs.filter(pk=colmena_filtro)
+    dist_estado = dict(
+        e.colmenas.filter(archivada=False)
+        .values_list("estado")
+        .annotate(c=Count("pk"))
+        .values_list("estado", "c")
+    )
+    dist_ubicacion = list(
+        cols_qs.values("ubicacion").annotate(total=Count("pk")).order_by("-total")[:10]
     )
     return render(
         request,
@@ -769,10 +800,15 @@ def reportes(request):
         {
             "page": pagina(request, qs),
             "estadisticas": estadisticas(qs),
-            "colmenas": request.user.empresa.colmenas.order_by("numero"),
-            "sensores": request.user.empresa.sensores.order_by("codigo"),
+            "colmenas": e.colmenas.order_by("numero"),
+            "sensores": e.sensores.order_by("codigo"),
             "query": request.GET.urlencode(),
             "chart_url": reverse("telemetria"),
+            # Stats nuevas
+            "total_lecturas": qs.count(),
+            "total_colmenas": cols_qs.count(),
+            "dist_estado": dist_estado,
+            "dist_ubicacion": dist_ubicacion,
         },
     )
 
