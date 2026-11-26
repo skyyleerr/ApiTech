@@ -1,0 +1,24 @@
+Datos de demostración listos.
+NIT de la empresa demo: 900123456-7
+DASHBOARD Dashboard de empresa · ApiTech
+200 /app/colmenas/
+200 /app/colmenas/1/
+200 /app/sensores/
+200 /app/produccion/
+200 /app/alertas/
+200 /app/reportes/
+200 /usuarios/
+200 /app/pagos/
+200 /app/importar/
+200 /app/conexion-api/
+200 /app/umbrales/
+200 /perfil/
+200 /notificaciones/
+200 /ayuda/
+JS ERRORS []
+CREAR COLMENA: OK
+SENSOR + ASOCIACIÓN + ORDEN PENDIENTE: OK
+GUARDAR UMBRAL: OK
+PRODUCCIÓN: OK
+API SIN CONFIGURACIÓN: ERROR CONTROLADO
+ERRORES JS: 0

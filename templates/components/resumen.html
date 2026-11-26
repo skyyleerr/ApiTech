@@ -1,0 +1,11 @@
+<div class="summary-values">
+  {% for r in resumen %}
+    <div class="role-card" data-summary-tipo="{{ r.tipo }}">
+      <span>{{ r.tipo|title }} · {{ r.unidad }}</span>
+      <div class="role-value summary-value">{% if r.valor != None %}{{ r.valor|floatformat:2 }} {{ r.unidad }}{% else %}—{% endif %}</div>
+      <small class="summary-count">Promedio de últimas lecturas recientes · {{ r.muestras }} sensores</small>
+      <small class="summary-date">{% if r.fecha %}Última lectura: {{ r.fecha|date:'d/m/Y H:i:s' }}{% if not r.muestras %} · Datos desactualizados{% endif %}{% else %}Sin lecturas recibidas{% endif %}</small>
+      <small class="summary-origin">{{ r.origenes|default:'Sin origen registrado' }}</small>
+    </div>
+  {% endfor %}
+</div>
